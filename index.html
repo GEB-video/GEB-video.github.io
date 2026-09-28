@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyond the Timeline: Augmenting Long-Video Memory with Grounded Entity Biographies</title>
+<meta name="description" content="Grounded Entity Biographies (GEB): a long-video memory that groups visually grounded observations of the same physical instance across clips into retrievable biographies. 72.0% on EgoLifeQA.">
+<meta property="og:title" content="Beyond the Timeline: Grounded Entity Biographies for Long-Video Memory">
+<meta property="og:description" content="A memory that follows people and objects through events across hours or days, not only the events themselves.">
+<meta property="og:image" content="assets/teaser.webp">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230a5f62%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27Georgia,serif%27 font-size=%2718%27 font-weight=%27600%27 fill=%27%23fff%27 text-anchor=%27middle%27%3EG%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav" aria-label="Sections">
+  <a class="brand" href="#top">GEB</a>
+  <ul>
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#ablation">Ablation</a></li>
+    <li><a href="#evidence">Evidence</a></li>
+    <li><a href="#qualitative">Example</a></li>
+    <li><a href="#cite">BibTeX</a></li>
+  </ul>
+</nav>
+
+<header class="masthead" id="top">
+  <div class="wrap">
+    <h1 class="title">Beyond the Timeline<span class="title-sub">Augmenting Long-Video Memory with <strong>Grounded Entity Biographies</strong></span></h1>
+    <p class="authors" id="authors"></p>
+    <p class="affils" id="affils"></p>
+    <nav class="links" id="links" aria-label="Paper resources"></nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap-wide">
+    <figure class="figure">
+      <img src="assets/teaser.webp" alt="Two red mugs in a kitchen. The striped mug used for coffee returns to the counter; a different solid red mug goes into the dishwasher. Two separate biographies answer the question." width="2400" height="859">
+      <figcaption>Two red mugs, two biographies. A memory of moments cannot tell which mug went into the dishwasher; a memory of entities can.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="abstract">
+  <div class="wrap">
+    <h2>Abstract</h2>
+    <p class="abstract">Answering questions about long videos often requires connecting events involving the same objects across hours or days. Chronological descriptions and text-derived entities can leave physical identity unresolved: different objects may share a description, while observations of the same object remain disconnected across events. Retrieving relevant events therefore does not necessarily recover the “biography” of the particular entity a question concerns. To address this, we introduce <em>Grounded Entity Biographies</em> (GEB), a long-video memory framework that groups visually grounded observations of the same physical instance across clips into retrievable biographies while preserving the context of each moment. During question answering, the biography is retrieved alongside episodic evidence, allowing the model to follow an entity through events using identity links established during memory construction. Evaluations across four benchmarks, including day-long and week-long recordings, demonstrate improvements over prior memory frameworks in both multiple-choice and open-ended question answering. On EgoLifeQA, GEB achieves 72.0% accuracy, 4.4 percentage points above the best published result. Ablations show that grounded identity association and biography reading both contribute to the gains, which additional descriptions alone do not fully recover.</p>
+  </div>
+</section>
+
+<section class="section section-tinted" id="intro">
+  <div class="wrap">
+    <h2>Chronicle and biography</h2>
+    <p>History can be organized around events or around the subjects who took part. A chronicle follows events through time; a biography follows a subject through those events. Long-video memory needs both: it must recover what happened at a particular moment and connect what happened to the same person or object across hours or days.</p>
+  </div>
+  <div class="wrap-mid">
+    <div class="regroup" role="img" aria-label="The same five moments arranged twice: once in time order as a chronicle, once grouped into the biography of each mug.">
+      <div class="regroup-head">Chronicle</div>
+      <div class="regroup-row chron">
+        <div class="bio-name"></div>
+        <figure><img src="assets/moment_1.webp" alt=""><figcaption><span>t<sub>1</sub></span>Two red mugs on the counter</figcaption></figure>
+        <figure><img src="assets/moment_2.webp" alt=""><figcaption><span>t<sub>2</sub></span>Coffee is poured into a red mug</figcaption></figure>
+        <figure><img src="assets/moment_3.webp" alt=""><figcaption><span>t<sub>3</sub></span>A red mug is picked up</figcaption></figure>
+        <figure><img src="assets/moment_4.webp" alt=""><figcaption><span>t<sub>4</sub></span>A red mug goes into the dishwasher</figcaption></figure>
+        <figure><img src="assets/moment_5.webp" alt=""><figcaption><span>t<sub>5</sub></span>A red mug is back on the counter</figcaption></figure>
+      </div>
+      <div class="regroup-head">Biographies</div>
+      <div class="regroup-row bio teal">
+        <span class="bio-line" style="grid-column: 2 / 7" aria-hidden="true"></span>
+        <div class="bio-name">Mug #1<small>striped</small></div>
+        <figure><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
+        <figure><img src="assets/moment_2.webp" alt=""><figcaption>filled with coffee</figcaption></figure>
+        <figure class="empty" aria-hidden="true"></figure>
+        <figure class="empty" aria-hidden="true"></figure>
+        <figure><img src="assets/moment_5.webp" alt=""><figcaption>back on the counter</figcaption></figure>
+      </div>
+      <div class="regroup-row bio amber">
+        <span class="bio-line" style="grid-column: 2 / 6" aria-hidden="true"></span>
+        <div class="bio-name">Mug #2<small>solid red</small></div>
+        <figure><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
+        <figure class="empty" aria-hidden="true"></figure>
+        <figure><img src="assets/moment_3.webp" alt=""><figcaption>picked up</figcaption></figure>
+        <figure><img src="assets/moment_4.webp" alt=""><figcaption>into the dishwasher</figcaption></figure>
+        <figure class="empty" aria-hidden="true"></figure>
+      </div>
+    </div>
+    <p class="table-note">The same five moments, arranged twice. Read as a chronicle, two accurate descriptions of “a red mug” cannot say whether they concern the same mug. Read as biographies, the coffee mug never reaches the dishwasher.</p>
+  </div>
+</section>
+
+<section class="section" id="method">
+  <div class="wrap">
+    <h2>Method</h2>
+  </div>
+  <div class="wrap-wide">
+    <figure class="figure">
+      <img src="assets/method.webp" alt="Overview: a grounded observation of a blue hand mixer on Day 1 is linked to observations on Days 3 to 6; a retrieval controller reads the question, issues searches, and passes a biography excerpt and linked episode context to the answer model." width="2400" height="980">
+      <figcaption>One blue hand mixer, followed from Day 1 to Day 6. Every observation keeps its own description, frames and episode; the controller reads the biography and the linked episodes to answer.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap-mid">
+    <ol class="steps">
+      <li><h3>Ground</h3><p>Each tracked object in a clip is described from its own crops, the scene frames and the dialogue of that moment.</p></li>
+      <li><h3>Associate</h3><p>An observation joins a biography only if it matches the entity's recent references and is never seen apart from them in a shared frame.</p></li>
+      <li><h3>Read</h3><p>Retrieval enters through a matched moment, follows same-instance edges to the rest of the biography, and reaches the episodes around each encounter.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="results">
+  <div class="wrap">
+    <h2>Results</h2>
+    <p class="lead">Four benchmarks over week-long and day-long recordings, with multiple-choice and open-ended questions. GEB has the highest overall score on every split.</p>
+  </div>
+  <div class="wrap-wide">
+    <figure class="figure figure-table card">
+      <img src="assets/table_main.webp" alt="Main results table: accuracy of sixteen systems on EgoLifeQA, Ego-R1-Bench and MM-Lifelong Test@Week and Test@Day. GEB reaches 72.0 on EgoLifeQA, 71.3 on Ego-R1, 36.83 on Test@Week and 17.58 on Test@Day, the best in each column." width="1713" height="1034">
+      <figcaption>EgoLifeQA and Ego-R1-Bench accuracy (%), MM-Lifelong GPT-5-judged accuracy (%). Bold: best; underline: second best. <sup>*</sup> and <sup>†</sup> mark published results; other entries are our runs.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap-mid">
+    <figure class="figure figure-table card">
+      <img src="assets/table_multihop.webp" alt="MultiHop-EgoQA table: temporal grounding (mIoP, mIoG, IoU@0.3, mIoU) and answering (similarity, judge score) for whole-clip models and memory frameworks. GEB leads the memory frameworks on every metric." width="1646" height="900">
+      <figcaption>MultiHop-EgoQA: temporal grounding and answer quality. GEB leads the memory frameworks on every metric and exceeds every reported model in IoU@0.3 and mIoU.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section-tinted" id="ablation">
+  <div class="wrap">
+    <h2>Ablation</h2>
+    <p class="lead">EgoLifeQA accuracy (%) with one decision removed; controller and answer model fixed.</p>
+  </div>
+  <div class="wrap-mid">
+    <div class="table-scroll">
+    <table class="results ablation">
+      <thead>
+        <tr><th scope="col">The index</th><th scope="col">Acc.</th><th scope="col" class="gap">The reading</th><th scope="col">Acc.</th></tr>
+      </thead>
+      <tbody>
+        <tr class="ours"><th scope="row">GEB (full)</th><td>72.0</td><th scope="row" class="gap"></th><td></td></tr>
+        <tr><th scope="row">w/o association</th><td>68.6</td><th scope="row" class="gap">w/o biography text (index only)</th><td>68.0</td></tr>
+        <tr><th scope="row">identity keyed by name</th><td>69.2</td><th scope="row" class="gap">w/o biography text for the answer model</th><td>70.8</td></tr>
+        <tr><th scope="row">descriptions appended to captions</th><td>68.2</td><th scope="row" class="gap">w/o identity notes</th><td>68.2</td></tr>
+        <tr><th scope="row">w/o observation→timeline edges</th><td>68.2</td><th scope="row" class="gap">w/o unsearched-observation line</th><td>70.2</td></tr>
+        <tr><th scope="row"></th><td></td><th scope="row" class="gap">w/o caption text</th><td>61.8</td></tr>
+        <tr><th scope="row"></th><td></td><th scope="row" class="gap">w/o visual frames</th><td>70.4</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="evidence">
+  <div class="wrap">
+    <h2>Evidence reaches the answer model more often</h2>
+  </div>
+  <div class="wrap-mid">
+    <div class="panels">
+      <figure class="figure panel">
+        <img src="assets/evidence_egolifeqa.webp" alt="Bar chart: EgoLifeQA evidence hit rate rises from 37.6% with MAGIC-Video to 58.9% with GEB, in every question family." width="844" height="600">
+        <figcaption>EgoLifeQA: questions whose annotated evidence reaches the answer model, 37.6% to 58.9%.</figcaption>
+      </figure>
+      <figure class="figure panel">
+        <img src="assets/evidence_multihop.webp" alt="Bar chart: MultiHop-EgoQA complete evidence coverage by number of annotated intervals; GEB's relative gain over MAGIC-Video grows with the number of intervals." width="844" height="600">
+        <figcaption>MultiHop-EgoQA: questions with every evidence interval reached. The gain grows with the number of intervals.</figcaption>
+      </figure>
+    </div>
+    <figure class="figure figure-table card">
+      <img src="assets/table_coverage.webp" alt="MultiHop-EgoQA evidence coverage table: fraction of questions with every annotated interval reached, retrieved duration, judge score and mIoU for MAGIC-Video, a six-unit MAGIC-Video variant, WorldMM, GEB, and two GEB ablations." width="1288" height="550">
+      <figcaption>Complete evidence coverage on MultiHop-EgoQA. GEB reaches every annotated interval far more often than MAGIC-Video, and as often as WorldMM while reading less of the clip.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section-tinted" id="qualitative">
+  <div class="wrap">
+    <h2>Two caps, two biographies</h2>
+  </div>
+  <div class="wrap-wide">
+    <figure class="figure card">
+      <img src="assets/case.webp" alt="Question: who wore a hat while walking in the park. Two blue caps appear in one frame on Day 3. Cap 28648's biography names Lucia; cap 28919's biography names Tasha. Answer C: Lucia, Tasha." width="2800" height="518">
+      <figcaption>Two blue caps share one frame at 15:09, so they are two objects. Each cap's biography reaches the episode that names its wearer.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="cite">
+  <div class="wrap">
+    <h2>Citation</h2>
+    <div class="bibtex-box">
+      <pre id="bibtex"></pre>
+      <button type="button" class="copy" id="copy-bibtex">Copy BibTeX</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>Recordings and questions come from the public EgoLife, Ego-R1-Bench, MM-Lifelong and MultiHop-EgoQA benchmarks. Frames shown are from EgoLife.</p>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
