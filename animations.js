@@ -73,7 +73,7 @@
     "Read. The biography excerpt lists the retrieved encounters in time order and the appearances not yet inspected, next to the linked episode context.",
     "Answer. The answer model reads the biography together with the episode and names Shure.",
   ];
-  const durations = [3000, 3400, 3400, 3000, 3200, 3000];
+  const durations = [3000, 3400, 5400, 3000, 3200, 3000];
   const LAST = captions.length - 1;
   let stage = 0;
   let playing = !reduced;
@@ -99,37 +99,51 @@
     const rel = (r) => ({ x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height });
     const e = rel(entity.getBoundingClientRect());
     const paths = [];
-    // A short stem drops from the chip to a horizontal bus, and one vertical per frame drops from the bus,
-    // so frames wider apart than the chip still read as connected to it.
+    // Links are drawn from the observations towards the entity: one vertical per frame rises to a horizontal
+    // bus, a stem climbs from the bus to the chip, and the Day 1 card joins the chip from the left.
     const xs = obs.map((o) => {
       const f = rel(o.querySelector(".frame").getBoundingClientRect());
       return { x: f.x + f.w * Number(o.dataset.lx || 0.5), top: f.y + 2 };
     });
     const busY = e.y + e.h + 18;
     const cx = e.x + e.w / 2;
-    paths.push({ d: `M ${cx} ${e.y + e.h} V ${busY} M ${Math.min(...xs.map((p) => p.x))} ${busY} H ${Math.max(...xs.map((p) => p.x))}` });
-    xs.forEach((p) => paths.push({ d: `M ${p.x} ${busY} V ${p.top}` }));
+    xs.forEach((p) => paths.push({ d: `M ${p.x} ${p.top} V ${busY}` }));
+    paths.push({ d: `M ${Math.min(...xs.map((p) => p.x))} ${busY} H ${Math.max(...xs.map((p) => p.x))}` });
+    paths.push({ d: `M ${cx} ${busY} V ${e.y + e.h}` });
     const f1 = rel(frameDay1.getBoundingClientRect());
     const card = rel(cardDay1.getBoundingClientRect());
     const ey = e.y + e.h / 2, exitY = f1.y + f1.h * Number(frameDay1.dataset.exit || 0.5);
     const cardRight = card.x + card.w;
     // In the stacked (narrow) layout the Day 1 card sits above the chip and a link would cross the text, so skip it.
     if (cardRight < e.x) {
-      const cx = cardRight + 26, r = 12;
-      paths.unshift({ d: `M ${e.x} ${ey} H ${cx + r} Q ${cx} ${ey} ${cx} ${ey + r} V ${exitY - r} Q ${cx} ${exitY} ${cx - r} ${exitY} H ${cardRight}` });
+      const ex = cardRight + 26, r = 12;
+      paths.push({ d: `M ${cardRight} ${exitY} H ${ex - r} Q ${ex} ${exitY} ${ex} ${exitY - r} V ${ey + r} Q ${ex} ${ey} ${ex + r} ${ey} H ${e.x}` });
     }
     svg.replaceChildren();
     paths.forEach((p, i) => {
       const base = document.createElementNS("http://www.w3.org/2000/svg", "path");
       base.setAttribute("d", p.d); base.setAttribute("class", "link"); base.setAttribute("pathLength", "1");
-      base.style.transitionDelay = `${i * 220}ms`;
+      base.dataset.order = String(i);
       const pulse = base.cloneNode(); pulse.setAttribute("class", "link pulse");
       pulse.style.animationDelay = `${i * 180}ms`;
       svg.append(base, pulse);
     });
+    timeLinks();
+  }
+  // Associate timing: verticals (Day 3-6) every LINK_STEP ms, then the bus, the stem and the Day 1 elbow;
+  // the entity chip lights up once everything has converged (see .assoc-live rules in style.css).
+  const LINK_STEP = 650;
+  const LATE = [4 * LINK_STEP, 4 * LINK_STEP + 350, 4 * LINK_STEP + 650];  // bus, stem, Day 1 elbow
+  function timeLinks() {
+    svg.querySelectorAll("path.link:not(.pulse)").forEach((p) => {
+      const i = Number(p.dataset.order);
+      const delay = i < obs.length ? i * LINK_STEP : LATE[i - obs.length];
+      p.style.transitionDelay = stage === 2 ? `${delay}ms` : "0ms";
+    });
   }
 
   function render(prev) {
+    timeLinks();  // delays must be in place before the stage attribute starts the transitions
     pipe.dataset.stage = String(stage);
     onEls.forEach((el) => el.classList.toggle("on", Number(el.dataset.on) <= stage));
     dimEls.forEach((el) => el.classList.toggle("on", Number(el.dataset.dim) <= stage));
@@ -144,7 +158,7 @@
       o.classList.toggle("reached", stage >= 3);
       o.style.setProperty("--i", i);
     });
-    drawLinks();
+    pipe.classList.toggle("assoc-live", stage === 2 && prev < 2);
   }
 
   function schedule() {
@@ -168,8 +182,8 @@
   if (reduced) { stage = LAST; playBtn.textContent = "Play"; }
   // Start only once the pipeline is visible, so the first stage is not missed while the reader is elsewhere.
   const io = new IntersectionObserver((entries) => {
-    if (entries.some((e) => e.isIntersecting)) { render(-1); schedule(); io.disconnect(); }
+    if (entries.some((e) => e.isIntersecting)) { drawLinks(); render(-1); schedule(); io.disconnect(); }
   }, { threshold: 0.3 });
-  render(-1); clearTimeout(timer); clearInterval(typeTimer); typed.textContent = "";
+  drawLinks(); render(-1); clearTimeout(timer); clearInterval(typeTimer); typed.textContent = "";
   io.observe(pipe);
 })();
