@@ -60,7 +60,6 @@
   const playBtn = document.getElementById("pipe-play");
   const typed = document.getElementById("typed-day1");
   const entity = document.getElementById("entity");
-  const ring = document.getElementById("ring-day1");
   const obs = [...pipe.querySelectorAll(".obs")];
   const onEls = [...pipe.querySelectorAll("[data-on]")];
   const dimEls = [...pipe.querySelectorAll("[data-dim]")];
@@ -74,7 +73,7 @@
     "Read. The biography excerpt lists the retrieved encounters in time order and the appearances not yet inspected, next to the linked episode context.",
     "Answer. The answer model reads the biography together with the episode and names Shure.",
   ];
-  const durations = [3000, 2400, 3400, 3000, 3200, 3000];
+  const durations = [3000, 3400, 3400, 3000, 3200, 3000];
   const LAST = captions.length - 1;
   let stage = 0;
   let playing = !reduced;
@@ -89,7 +88,10 @@
     typeTimer = setInterval(() => { typed.textContent = full.slice(0, ++i); if (i >= full.length) clearInterval(typeTimer); }, 22);
   }
 
-  // Connectors: entity chip -> each Day 3-6 frame (vertical), entity chip -> Day 1 ring (elbow to the left).
+  // Connectors continue the dotted lines baked into the frame crops: entity chip -> the exit point at the top of
+  // each Day 3-6 frame, and entity chip -> the right edge of the Day 1 card at the height where its line exits.
+  const frameDay1 = document.getElementById("frame-day1");
+  const cardDay1 = pipe.querySelector(".obs-card");
   function drawLinks() {
     const b = body.getBoundingClientRect();
     svg.setAttribute("viewBox", `0 0 ${b.width} ${b.height}`);
@@ -97,21 +99,30 @@
     const rel = (r) => ({ x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height });
     const e = rel(entity.getBoundingClientRect());
     const paths = [];
-    obs.forEach((o) => {
+    // A short stem drops from the chip to a horizontal bus, and one vertical per frame drops from the bus,
+    // so frames wider apart than the chip still read as connected to it.
+    const xs = obs.map((o) => {
       const f = rel(o.querySelector(".frame").getBoundingClientRect());
-      const x = f.x + f.w / 2;
-      paths.push({ d: `M ${x} ${e.y + e.h} V ${f.y + f.h * 0.5}`, key: "d" + o.dataset.day });
+      return { x: f.x + f.w * Number(o.dataset.lx || 0.5), top: f.y + 2 };
     });
-    const r = rel(ring.getBoundingClientRect());
-    const rx = r.x + r.w / 2, ry = r.y + r.h / 2;
-    const ex = e.x, ey = e.y + e.h / 2;
+    const busY = e.y + e.h + 18;
+    const cx = e.x + e.w / 2;
+    paths.push({ d: `M ${cx} ${e.y + e.h} V ${busY} M ${Math.min(...xs.map((p) => p.x))} ${busY} H ${Math.max(...xs.map((p) => p.x))}` });
+    xs.forEach((p) => paths.push({ d: `M ${p.x} ${busY} V ${p.top}` }));
+    const f1 = rel(frameDay1.getBoundingClientRect());
+    const card = rel(cardDay1.getBoundingClientRect());
+    const ey = e.y + e.h / 2, exitY = f1.y + f1.h * Number(frameDay1.dataset.exit || 0.5);
+    const cardRight = card.x + card.w;
     // In the stacked (narrow) layout the Day 1 card sits above the chip and a link would cross the text, so skip it.
-    if (rx < ex) paths.unshift({ d: `M ${ex} ${ey} H ${rx + 14} Q ${rx} ${ey} ${rx} ${ey + 14} V ${ry}`, key: "d1" });
+    if (cardRight < e.x) {
+      const cx = cardRight + 26, r = 12;
+      paths.unshift({ d: `M ${e.x} ${ey} H ${cx + r} Q ${cx} ${ey} ${cx} ${ey + r} V ${exitY - r} Q ${cx} ${exitY} ${cx - r} ${exitY} H ${cardRight}` });
+    }
     svg.replaceChildren();
     paths.forEach((p, i) => {
       const base = document.createElementNS("http://www.w3.org/2000/svg", "path");
       base.setAttribute("d", p.d); base.setAttribute("class", "link"); base.setAttribute("pathLength", "1");
-      base.style.transitionDelay = `${i * 260}ms`;
+      base.style.transitionDelay = `${i * 220}ms`;
       const pulse = base.cloneNode(); pulse.setAttribute("class", "link pulse");
       pulse.style.animationDelay = `${i * 180}ms`;
       svg.append(base, pulse);
