@@ -30,7 +30,8 @@ window.SITE = {
 
   bibtex: `@article{ren2026geb,
   title   = {Beyond the Timeline: Augmenting Long-Video Memory with Grounded Entity Biographies},
-  author  = {Ren, Hui and Fan, Lei and Pao, Henry and Guo, Han and Zia, Zeeshan and Chen, Ying and Schwing, Alexander G. and Hua, Gang},
+  author  = {Ren, Hui and Fan, Lei and Pao, Henry and Guo, Han and Zia, Zeeshan and
+             Chen, Ying and Schwing, Alexander G. and Hua, Gang},
   journal = {arXiv preprint arXiv:XXXX.XXXXX},
   year    = {2026}
 }`,

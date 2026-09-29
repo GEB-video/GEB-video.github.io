@@ -64,8 +64,8 @@
     <p>History can be organized around events or around the subjects who took part. A chronicle follows events through time; a biography follows a subject through those events. Long-video memory needs both: it must recover what happened at a particular moment and connect what happened to the same person or object across hours or days.</p>
   </div>
   <div class="wrap-mid">
-    <div class="regroup" role="img" aria-label="The same five moments arranged twice: once in time order as a chronicle, once grouped into the biography of each mug.">
-      <div class="regroup-head">Chronicle</div>
+    <div class="regroup" id="regroup" role="img" aria-label="The same five moments arranged twice: once in time order as a chronicle, once grouped into the biography of each mug.">
+      <div class="regroup-head">Chronicle <button type="button" class="replay" id="regroup-replay" aria-label="Replay the regrouping animation">Replay</button></div>
       <div class="regroup-row chron">
         <div class="bio-name"></div>
         <figure><img src="assets/moment_1.webp" alt=""><figcaption><span>t<sub>1</sub></span>Two red mugs on the counter</figcaption></figure>
@@ -78,19 +78,19 @@
       <div class="regroup-row bio teal">
         <span class="bio-line" style="grid-column: 2 / 7" aria-hidden="true"></span>
         <div class="bio-name">Mug #1<small>striped</small></div>
-        <figure><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
-        <figure><img src="assets/moment_2.webp" alt=""><figcaption>filled with coffee</figcaption></figure>
+        <figure data-moment="1"><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
+        <figure data-moment="2"><img src="assets/moment_2.webp" alt=""><figcaption>filled with coffee</figcaption></figure>
         <figure class="empty" aria-hidden="true"></figure>
         <figure class="empty" aria-hidden="true"></figure>
-        <figure><img src="assets/moment_5.webp" alt=""><figcaption>back on the counter</figcaption></figure>
+        <figure data-moment="5"><img src="assets/moment_5.webp" alt=""><figcaption>back on the counter</figcaption></figure>
       </div>
       <div class="regroup-row bio amber">
         <span class="bio-line" style="grid-column: 2 / 6" aria-hidden="true"></span>
         <div class="bio-name">Mug #2<small>solid red</small></div>
-        <figure><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
+        <figure data-moment="1"><img src="assets/moment_1.webp" alt=""><figcaption>on the counter</figcaption></figure>
         <figure class="empty" aria-hidden="true"></figure>
-        <figure><img src="assets/moment_3.webp" alt=""><figcaption>picked up</figcaption></figure>
-        <figure><img src="assets/moment_4.webp" alt=""><figcaption>into the dishwasher</figcaption></figure>
+        <figure data-moment="3"><img src="assets/moment_3.webp" alt=""><figcaption>picked up</figcaption></figure>
+        <figure data-moment="4"><img src="assets/moment_4.webp" alt=""><figcaption>into the dishwasher</figcaption></figure>
         <figure class="empty" aria-hidden="true"></figure>
       </div>
     </div>
@@ -101,19 +101,72 @@
 <section class="section" id="method">
   <div class="wrap">
     <h2>Method</h2>
+    <p class="lead">One blue hand mixer, followed from Day 1 to Day 6. The memory is written in three steps and read in three more.</p>
   </div>
   <div class="wrap-wide">
-    <figure class="figure">
-      <img src="assets/method.webp" alt="Overview: a grounded observation of a blue hand mixer on Day 1 is linked to observations on Days 3 to 6; a retrieval controller reads the question, issues searches, and passes a biography excerpt and linked episode context to the answer model." width="2400" height="980">
-      <figcaption>One blue hand mixer, followed from Day 1 to Day 6. Every observation keeps its own description, frames and episode; the controller reads the biography and the linked episodes to answer.</figcaption>
-    </figure>
-  </div>
-  <div class="wrap-mid">
-    <ol class="steps">
-      <li><h3>Ground</h3><p>Each tracked object in a clip is described from its own crops, the scene frames and the dialogue of that moment.</p></li>
-      <li><h3>Associate</h3><p>An observation joins a biography only if it matches the entity's recent references and is never seen apart from them in a shared frame.</p></li>
-      <li><h3>Read</h3><p>Retrieval enters through a matched moment, follows same-instance edges to the rest of the biography, and reaches the episodes around each encounter.</p></li>
-    </ol>
+    <div class="pipeline" id="pipeline" data-stage="0">
+      <div class="pipe-head">
+        <ol class="pipe-stages" id="pipe-stages" aria-label="Stages">
+          <li data-stage="0"><span>Ground</span></li>
+          <li data-stage="1"><span>Observe</span></li>
+          <li data-stage="2"><span>Associate</span></li>
+          <li data-stage="3"><span>Retrieve</span></li>
+          <li data-stage="4"><span>Read</span></li>
+          <li data-stage="5"><span>Answer</span></li>
+        </ol>
+        <div class="pipe-controls">
+          <button type="button" class="ctl ghost" id="pipe-prev" aria-label="Previous stage">‹</button>
+          <button type="button" class="ctl" id="pipe-play" aria-label="Pause">Pause</button>
+          <button type="button" class="ctl ghost" id="pipe-next" aria-label="Next stage">›</button>
+        </div>
+      </div>
+
+      <div class="pipe-body" id="pipe-body">
+        <svg class="pipe-links" id="pipe-links" aria-hidden="true"></svg>
+
+        <div class="pipe-col pipe-left">
+          <div class="obs-card" data-on="0">
+            <div class="frame big">
+              <img src="assets/method_day1.webp" alt="Day 1, 14:01. Jake holds a blue hand mixer at the sink while Shure reaches in to help." width="490" height="516">
+              <span class="ring" id="ring-day1" style="--cx:61%;--cy:56%;--r:13%"></span>
+              <span class="stamp">Day 1 · 14:01</span>
+            </div>
+            <p class="obs-text"><span class="typed" id="typed-day1" data-text="I was holding the mixer; now Shure shows how to attach the beaters."></span></p>
+            <p class="obs-src" data-on="0">described from its crops, the scene frames and the dialogue</p>
+            <div class="episode" data-dim="4"><b>Linked episode</b> Shure explains “And then you put it on like this, oh.”</div>
+          </div>
+        </div>
+
+        <div class="pipe-col pipe-mid">
+          <div class="entity" id="entity" data-on="2">
+            <img src="assets/method_mixer.webp" alt="" width="204" height="174">
+            <div><b>blue hand mixer</b><small>one persistent physical instance</small></div>
+          </div>
+          <div class="obs-row">
+            <figure class="obs" data-dim="1" data-day="3"><div class="frame"><img src="assets/method_day3.webp" alt="Day 3: the mixer beating cream at a crowded table." width="252" height="252"><span class="stamp">Day 3</span></div><figcaption>Beating cream</figcaption></figure>
+            <figure class="obs" data-dim="1" data-day="4"><div class="frame"><img src="assets/method_day4.webp" alt="Day 4: the mixer held by Shure." width="250" height="252"><span class="stamp">Day 4</span></div><figcaption>Held by Shure</figcaption></figure>
+            <figure class="obs" data-dim="1" data-day="5"><div class="frame"><img src="assets/method_day5.webp" alt="Day 5: the mixer mixing in a bowl." width="252" height="252"><span class="stamp">Day 5</span></div><figcaption>Mixing in a bowl</figcaption></figure>
+            <figure class="obs" data-dim="1" data-day="6"><div class="frame"><img src="assets/method_day6.webp" alt="Day 6: the mixer resting on the counter." width="252" height="252"><span class="stamp">Day 6</span></div><figcaption>On the counter</figcaption></figure>
+          </div>
+          <p class="assoc-note" data-on="2">An observation joins only if it matches the entity's recent references <em>and</em> is never seen apart from them in a shared frame.</p>
+        </div>
+
+        <div class="pipe-col pipe-right">
+          <div class="q-card" data-on="0" data-hl="3"><b>Question</b> While I was cleaning the egg mixer, who joined in to help?</div>
+          <div class="ctrl-box" data-dim="3">Retrieval controller</div>
+          <div class="query" data-dim="3">search · “who helped me clean the egg mixer?”</div>
+          <div class="bio-card" data-dim="4">
+            <div class="bio-head">Biography excerpt <span>blue hand mixer</span></div>
+            <p class="bio-line1">[Day 1 14:01] <b>Shure shows how to attach the beaters.</b></p>
+            <p class="bio-more">Other recorded appearances 13:50, 13:55 …</p>
+          </div>
+          <div class="answer" data-on="5"><span class="model">Answer model</span><b>“Shure”</b><i>✓</i></div>
+        </div>
+      </div>
+
+      <p class="pipe-caption" id="pipe-caption" aria-live="polite"></p>
+    </div>
+
   </div>
 </section>
 
@@ -196,7 +249,7 @@
 </section>
 
 <section class="section" id="cite">
-  <div class="wrap">
+  <div class="wrap-mid">
     <h2>Citation</h2>
     <div class="bibtex-box">
       <pre id="bibtex"></pre>
@@ -215,5 +268,6 @@
 
 <script src="config.js"></script>
 <script src="main.js"></script>
+<script src="animations.js"></script>
 </body>
 </html>
