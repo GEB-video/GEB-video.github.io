@@ -17,7 +17,7 @@ window.SITE = {
   ],
   affiliations: {
     1: "University of Illinois Urbana-Champaign",
-    2: "Amazon",
+    2: "Amazon.com, Inc.",
   },
   equalNote: "Equal contribution",
 
