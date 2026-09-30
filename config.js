@@ -22,7 +22,7 @@ window.SITE = {
   equalNote: "Equal contribution",
 
   links: {
-    arxiv: "https://arxiv.org/abs/XXXX.XXXXX",
+    arxiv: "https://arxiv.org/abs/2609.38155",
     code: "https://github.com/rhfeiyang/GEB",
     // Leave empty to hide the button.
     data: "",
@@ -32,7 +32,7 @@ window.SITE = {
   title   = {Beyond the Timeline: Augmenting Long-Video Memory with Grounded Entity Biographies},
   author  = {Ren, Hui and Fan, Lei and Pao, Henry and Guo, Han and Zia, Zeeshan and
              Chen, Ying and Schwing, Alexander G. and Hua, Gang},
-  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  journal = {arXiv preprint arXiv:2609.38155},
   year    = {2026}
 }`,
 };
