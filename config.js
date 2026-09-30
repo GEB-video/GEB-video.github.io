@@ -23,6 +23,7 @@ window.SITE = {
 
   links: {
     arxiv: "https://arxiv.org/abs/2609.38155",
+    hf: "https://huggingface.co/papers/2609.38155",
     code: "https://github.com/rhfeiyang/GEB",
     // Leave empty to hide the button.
     data: "",
