@@ -15,7 +15,7 @@
   const authors = document.getElementById("authors");
   site.authors.forEach((a, i) => {
     const label = stripTodo(a.name) + (a.equal ? "*" : "");
-    const name = a.url ? el("a", { href: a.url }, [label]) : el("span", {}, [label]);
+    const name = a.url ? el("a", { href: a.url, target: "_blank", rel: "noopener noreferrer" }, [label]) : el("span", {}, [label]);
     if (isTodo(a.name)) name.classList.add("todo");
     authors.append(name, el("sup", {}, [a.affil.join(",")]));
     if (i < site.authors.length - 1) authors.append(", ");
