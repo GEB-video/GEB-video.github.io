@@ -28,11 +28,13 @@ window.SITE = {
     data: "",
   },
 
-  bibtex: `@article{ren2026geb,
-  title   = {Beyond the Timeline: Augmenting Long-Video Memory with Grounded Entity Biographies},
-  author  = {Ren, Hui and Fan, Lei and Pao, Henry and Guo, Han and Zia, Zeeshan and
-             Chen, Ying and Schwing, Alexander G. and Hua, Gang},
-  journal = {arXiv preprint arXiv:2609.38155},
-  year    = {2026}
+  bibtex: `@misc{ren2026GEB,
+      title={Beyond the Timeline: Augmenting Long-Video Memory with Grounded Entity Biographies}, 
+      author={Hui Ren and Lei Fan and Henry Pao and Han Guo and Zeeshan Zia and Ying Chen and Alexander Schwing and Gang Hua},
+      year={2026},
+      eprint={2609.38155},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2609.38155}, 
 }`,
 };
